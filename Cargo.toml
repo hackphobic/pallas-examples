@@ -1,0 +1,7 @@
+[package]
+name = "pallas-examples"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pallas = "0.32.0"
