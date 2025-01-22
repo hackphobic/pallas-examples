@@ -1,15 +1,32 @@
 use std::io;
 use pallas::crypto::key::ed25519::{SecretKeyExtended, TryFromSecretKeyExtendedError};
-use bip32::{Mnemonic, Language, ExtendedPrivateKey};
-use ed25519_dalek::{SecretKey, SigningKey};
-use bip32::{XPrv, DerivationPath};
+// use bip39::{Mnemonic, Seed};
 
-pub fn xprv_from_phrase(seed_phrase: &str) -> Result<ExtendedPrivateKey<SigningKey>, io::Error> {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 
+pub fn xprv_from_phrase(seed_phrase: &str) -> Result<SecretKeyExtended, io::Error> {
     let phrase = Mnemonic::new(seed_phrase, Language::English).expect("Invalid phrase");
     let seed = phrase.to_seed("");
-    let xprv = XPrv::new(&seed).expect("Invalid seed");
+    let xprv = XPrv::new(&seed).expect("Invalid seed").to_bytes();
+    let ret = SecretKeyExtended::from_bytes(xprv.to_bytes()).expect("Error parsing xprv");
 
-    Ok(xprv)
+    Ok(ret)
     //let xprv: ExtendedPrivateKey<ecdsa::signing::SigningKey<Ed25519>> = ExtendedPrivateKey::new(seed); //from_bytes(&seed.as_bytes()[..32]).expect("Invalid secret key length");
     //let xprv = SecretKeyExtended::from_bytes(*seed.as_bytes()).expect("Invalid seed");
     
@@ -54,3 +71,13 @@ pub fn generate_address(keypair: &KeyPair) -> Result<(), io::Error> {
     Ok(())
 } */
 
+pub fn private_key_from_mnemonic(mnemonic: &str) -> Result<SecretKey, io::Error> {
+    let mnemonic = Mnemonic::parse(mnemonic).expect("Invalid mnemonic");
+    let seed = Seed::new(&mnemonic, "");
+    let secp = Secp256k1::new();
+    let secret_key = SecretKey::from_slice(&seed.as_bytes()[..32]).expect("32 bytes, within curve order");
+
+    Ok(secret_key)
+}
+
+    */
