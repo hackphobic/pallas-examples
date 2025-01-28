@@ -21,6 +21,13 @@ fn main() {
         let mut hasher = Hasher::<224>::new();
         //hasher.input(xprv.public_key());
         let payment_part = ShelleyPaymentPart::Key(pubkey_hash);
+        let delegation_part = ShelleyDelegationPart::Null;
+        let network_part = Network::Testnet;
+        let address = ShelleyAddress::new(network_part, payment_part, delegation_part).to_bech32().expect("Error: Bech32");
+        
+        println!("Address: {:?}", address);
+        println!("---------------------------------");
+        println!();
         println!("Raw bytes: {:?}", leaked); //xprv.public_key().hash(&mut hasher));
         //let utf8 = String::from_utf8(leaked.to_vec()).unwrap();
         //let hex = leaked.iter().map(|byte| format!("{:02x}", byte)).collect::<String>();
