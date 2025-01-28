@@ -17,7 +17,7 @@ fn main() {
         let parsed_key: [u8; 64] = key[..64].try_into().expect("Error: the provided key is shorter than 64 bytes");
         let xprv: SecretKeyExtended = SecretKeyExtended::from_bytes(parsed_key).expect("Error: parsing the key");
         let leaked: [u8; SecretKeyExtended::SIZE] = unsafe { SecretKeyExtended::leak_into_bytes(xprv) };
-        //let pubkey_hash = xprv.public_key().compute_hash();
+        let pubkey_hash = xprv.public_key().compute_hash();
         let mut hasher = Hasher::<224>::new();
         //hasher.input(xprv.public_key());
         let payment_part = ShelleyPaymentPart::Key(pubkey_hash);
