@@ -9,3 +9,4 @@ blake2 = "0.10.6"
 pallas = "0.32.0"
 quickcheck = "1.0.3"
 rand_core = "0.6.4"
+scrolls = { git = "https://github.com/txpipe/scrolls.git", version = "0.6.0-alpha.0" }

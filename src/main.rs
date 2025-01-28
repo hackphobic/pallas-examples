@@ -3,7 +3,7 @@ use std::hash::Hash;
 use std::fs;
 use std::io::{Write, Read};
 use blake2::{Blake2b, Blake2bVar};
-use pallas::ledger::{addresses, traverse::ComputeHash};
+use pallas::ledger::{addresses::ShelleyDelegationPart, traverse::ComputeHash};
 use pallas::crypto::key::ed25519::{self, *};
 use pallas::crypto::hash::Hasher;
 
@@ -14,8 +14,8 @@ use crypto::{
 
 fn main() {
     if let Ok(key) = fs::read("C:\\Users\\is_st\\key.txt"){
-        let parsed_key: [u8; 64] = key[..64].try_into().expect("error");
-        let xprv: SecretKeyExtended = SecretKeyExtended::from_bytes(parsed_key).expect("Error");
+        let parsed_key: [u8; 64] = key[..64].try_into().expect("Error: the provided key is shorter than 64 bytes");
+        let xprv: SecretKeyExtended = SecretKeyExtended::from_bytes(parsed_key).expect("Error: parsing the key");
         let leaked: [u8; SecretKeyExtended::SIZE] = unsafe { SecretKeyExtended::leak_into_bytes(xprv) };
         //let pubkey_hash = xprv.public_key().compute_hash();
         let mut hasher = Hasher::<224>::new();
@@ -28,6 +28,11 @@ fn main() {
         println!("Hex encoded key: {:02X?}", leaked);
         //let utf8 = leaked.iter().map(|&byte| String::from_utf8(byte)).collect::<String>();
         //print!("{:?}", hex);
+        let delegation = ShelleyDelegationPart(null);
+
+
+
+
     } else {
         let xprv: SecretKeyExtended = xprv_from_rng().expect("Error");
         let leaked: [u8; SecretKeyExtended::SIZE] = unsafe { SecretKeyExtended::leak_into_bytes(xprv)};
