@@ -6,13 +6,15 @@ use blake2::{Blake2b, Blake2bVar};
 use pallas::ledger::{addresses::ShelleyDelegationPart, traverse::ComputeHash};
 use pallas::crypto::key::ed25519::{self, *};
 use pallas::crypto::hash::Hasher;
+use pallas::txbuilder::{Input, Output, BuiltTransaction, StagingTransaction};
 
 use wallet::{
     //address::{xprv_from_phrase},
     keypair::{xprv_from_rng}
 };
 
-fn main() {
+#[tokio::main]
+async fn main() {
     if let Ok(key) = fs::read("C:\\Users\\is_st\\key.txt"){
         let parsed_key: [u8; 64] = key[..64].try_into().expect("Error: the provided key is shorter than 64 bytes");
         let xprv: SecretKeyExtended = SecretKeyExtended::from_bytes(parsed_key).expect("Error: parsing the key");
@@ -36,6 +38,13 @@ fn main() {
         //let utf8 = leaked.iter().map(|&byte| String::from_utf8(byte)).collect::<String>();
         //print!("{:?}", hex);
         let delegation_part = ShelleyDelegationPart(null);
+
+        let inputs = Input::new(tx_hash, utxo_index);
+        let output1 = Output::new(address, amount);
+        output1.set_inline_datum();
+        output1.set_inline_script();
+        output1.set_datum_hash();
+
 
 
 
