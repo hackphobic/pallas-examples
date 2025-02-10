@@ -9,13 +9,15 @@ use pallas::ledger::{
 };
 use pallas::crypto::key::ed25519::{self, *};
 use pallas::crypto::hash::Hasher;
+use blockfrost::{BlockFrostSettings, BlockfrostAPI, BlockfrostResult, Pagination};
 
 use wallet::{
     //address::{xprv_from_phrase},
     keypair::{xprv_from_rng}
 };
 
-fn main() {
+#[main]
+async fn main() {
     if let Ok(key) = fs::read("C:\\Users\\is_st\\key.txt"){
         let parsed_key: [u8; 64] = key[..64].try_into().expect("error");
         let xprv: SecretKeyExtended = SecretKeyExtended::from_bytes(parsed_key).expect("Error");
@@ -34,9 +36,20 @@ fn main() {
         //let utf8 = String::from_utf8(leaked.to_vec()).unwrap();
         //let hex = leaked.iter().map(|byte| format!("{:02x}", byte)).collect::<String>();
         println!("---------------------------------");
-        println!("Hex encoded key: {:02X?}", leaked);
+        println!("Hex encoded key: {:02X?}", leaked); 
         //let utf8 = leaked.iter().map(|&byte| String::from_utf8(byte)).collect::<String>();
         //print!("{:?}", hex);
+
+        let api = build_api()?;
+        let pagination = Pagination::default();
+        println!("Fetching ...");
+
+        // Health
+        let root = api.root().await;
+        let health = api.health().await;
+        let health_clock = api.health_clock().await;
+        let addresses_utxos = api.addresses_utxos(&address, pagination).await;
+        println!("utxos: {:?}", addresses_utxos);
     } else {
         let xprv: SecretKeyExtended = xprv_from_rng().expect("Error");
         let leaked: [u8; SecretKeyExtended::SIZE] = unsafe { SecretKeyExtended::leak_into_bytes(xprv)};
@@ -54,4 +67,12 @@ fn main() {
         //print!("{:?}", hex);
         println!("writing key to file: {:?}", write);
     }
+}
+
+
+fn build_api() -> BlockfrostResult<BlockfrostAPI> {
+    let settings = BlockFrostSettings::new();
+    let api = BlockfrostAPI::new("preprodtuBBTofEM0jqmUQF4NPwpUO2I9QkrHo6", settings);
+
+    Ok(api)
 }
