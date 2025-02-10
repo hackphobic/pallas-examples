@@ -3,26 +3,25 @@ use std::hash::Hash;
 use std::fs;
 use std::io::{Write, Read};
 use blake2::{Blake2b, Blake2bVar};
-use pallas::ledger::{
-    addresses::{ShelleyPaymentPart, ShelleyDelegationPart, Network, ShelleyAddress}, 
-    traverse::ComputeHash
-};
+use pallas::ledger::{addresses::ShelleyDelegationPart, traverse::ComputeHash};
 use pallas::crypto::key::ed25519::{self, *};
 use pallas::crypto::hash::Hasher;
 use blockfrost::{BlockFrostSettings, BlockfrostAPI, BlockfrostResult, Pagination};
+use pallas::txbuilder::{Input, Output, BuiltTransaction, StagingTransaction};
 
 use wallet::{
     //address::{xprv_from_phrase},
     keypair::{xprv_from_rng}
 };
 
-#[main]
+#[tokio::main]
 async fn main() {
     if let Ok(key) = fs::read("C:\\Users\\is_st\\key.txt"){
-        let parsed_key: [u8; 64] = key[..64].try_into().expect("error");
-        let xprv: SecretKeyExtended = SecretKeyExtended::from_bytes(parsed_key).expect("Error");
+        let parsed_key: [u8; 64] = key[..64].try_into().expect("Error: the provided key is shorter than 64 bytes");
+        let xprv: SecretKeyExtended = SecretKeyExtended::from_bytes(parsed_key).expect("Error: parsing the key");
+        let leaked: [u8; SecretKeyExtended::SIZE] = unsafe { SecretKeyExtended::leak_into_bytes(xprv) };
         let pubkey_hash = xprv.public_key().compute_hash();
-        let leaked: [u8; SecretKeyExtended::SIZE] = unsafe { SecretKeyExtended::leak_into_bytes(xprv)};
+        let mut hasher = Hasher::<224>::new();
         //hasher.input(xprv.public_key());
         let payment_part = ShelleyPaymentPart::Key(pubkey_hash);
         let delegation_part = ShelleyDelegationPart::Null;
@@ -50,6 +49,18 @@ async fn main() {
         let health_clock = api.health_clock().await;
         let addresses_utxos = api.addresses_utxos(&address, pagination).await;
         println!("utxos: {:?}", addresses_utxos);
+        let delegation_part = ShelleyDelegationPart(null);
+
+        let inputs = Input::new(tx_hash, utxo_index);
+        let output1 = Output::new(address, amount);
+        output1.set_inline_datum();
+        output1.set_inline_script();
+        output1.set_datum_hash();
+
+
+
+
+
     } else {
         let xprv: SecretKeyExtended = xprv_from_rng().expect("Error");
         let leaked: [u8; SecretKeyExtended::SIZE] = unsafe { SecretKeyExtended::leak_into_bytes(xprv)};
