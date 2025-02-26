@@ -39,13 +39,16 @@ async fn main() {
         //print!("{:?}", hex);
         let delegation_part = ShelleyDelegationPart(null);
 
-        let inputs = Input::new(tx_hash, utxo_index);
+        let input1 = Input::new(tx_hash, utxo_index);
         let output1 = Output::new(address, amount);
         output1.set_inline_datum();
         output1.set_inline_script();
         output1.set_datum_hash();
 
-
+        let staging_tx = StagingTransaction::new();
+        staging_tx.input(input);
+        staging_tx.Output(output1);
+        let built_tx = staging_tx.build_conway_raw();
 
 
 
