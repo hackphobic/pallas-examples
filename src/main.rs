@@ -6,6 +6,7 @@ use blake2::{Blake2b, Blake2bVar};
 use pallas::ledger::{addresses::ShelleyDelegationPart, traverse::ComputeHash};
 use pallas::crypto::key::ed25519::{self, *};
 use pallas::crypto::hash::Hasher;
+use blockfrost::{BlockFrostSettings, BlockfrostAPI, BlockfrostResult, Pagination};
 use pallas::txbuilder::{Input, Output, BuiltTransaction, StagingTransaction};
 
 use wallet::{
@@ -34,9 +35,20 @@ async fn main() {
         //let utf8 = String::from_utf8(leaked.to_vec()).unwrap();
         //let hex = leaked.iter().map(|byte| format!("{:02x}", byte)).collect::<String>();
         println!("---------------------------------");
-        println!("Hex encoded key: {:02X?}", leaked);
+        println!("Hex encoded key: {:02X?}", leaked); 
         //let utf8 = leaked.iter().map(|&byte| String::from_utf8(byte)).collect::<String>();
         //print!("{:?}", hex);
+
+        let api = build_api()?;
+        let pagination = Pagination::default();
+        println!("Fetching ...");
+
+        // Health
+        let root = api.root().await;
+        let health = api.health().await;
+        let health_clock = api.health_clock().await;
+        let addresses_utxos = api.addresses_utxos(&address, pagination).await;
+        println!("utxos: {:?}", addresses_utxos);
         let delegation_part = ShelleyDelegationPart(null);
 
         let input1 = Input::new(tx_hash, utxo_index);
@@ -69,4 +81,12 @@ async fn main() {
         //print!("{:?}", hex);
         println!("writing key to file: {:?}", write);
     }
+}
+
+
+fn build_api() -> BlockfrostResult<BlockfrostAPI> {
+    let settings = BlockFrostSettings::new();
+    let api = BlockfrostAPI::new("preprodtuBBTofEM0jqmUQF4NPwpUO2I9QkrHo6", settings);
+
+    Ok(api)
 }
