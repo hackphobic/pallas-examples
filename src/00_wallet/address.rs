@@ -1,11 +1,83 @@
 use std::path::PathBuf;
 use std::io;
+use std::fs; 
 use pallas::crypto::key::ed25519::{SecretKeyExtended, TryFromSecretKeyExtendedError};
+use pallas::crypto::hash::Hasher; 
+use pallas::ledger::addresses::{
+    ShelleyAddress, 
+    ShelleyPaymentPart, 
+    ShelleyDelegationPart, 
+    Network
+}; 
 // use bip39::{Mnemonic, Seed};
 
+pub fn print_current_address_verbose(path: PathBuf) {
+    match fs::read(&path) {
+        Ok(key) => {
+            if key.len() != 64 {
+                eprintln!("Error: the provided key is not 64 bytes (got {} bytes)", key.len());
+                return;
+            }
+            
+            let parsed_key: [u8; 64] = match key.try_into() {
+                Ok(k) => k,
+                Err(_) => {
+                    eprintln!("Error: failed to convert key to 64-byte array");
+                    return;
+                }
+            };
+            
+            let xprv = match SecretKeyExtended::from_bytes(parsed_key) {
+                Ok(k) => k,
+                Err(e) => {
+                    eprintln!("Error parsing the key: {:?}", e);
+                    return;
+                }
+            };
+            
+            let public_key = xprv.public_key();
+            let pubkey_hash = public_key.compute_hash();
+            
+            let payment_part = ShelleyPaymentPart::Key(pubkey_hash);
+            let delegation_part = ShelleyDelegationPart::Null;
+            let network_part = Network::from(TESTNET_MAGIC);
+            
+            let address = match ShelleyAddress::new(network_part, payment_part, delegation_part).to_bech32() {
+                Ok(addr) => addr,
+                Err(e) => {
+                    eprintln!("Error creating Bech32 address: {:?}", e);
+                    return;
+                }
+            };
+            
+            let leaked: [u8; SecretKeyExtended::SIZE] = unsafe { 
+                SecretKeyExtended::leak_into_bytes(xprv.clone()) 
+            };
+            
+            println!("Address: {}", address);
+            println!("---------------------------------");
+            println!("Raw bytes: {:?}", leaked);
+            println!("---------------------------------");
+            println!("Hex encoded key: {:02X?}", leaked);
+            
+            // Additional hex formatting options
+            let hex_string = leaked.iter()
+                .map(|byte| format!("{:02x}", byte))
+                .collect::<String>();
+            println!("Hex string: {}", hex_string);
+        }
+        Err(e) => {
+            eprintln!("ERROR READING KEY FROM FILE: {}", e);
+        }
+    }
+}
 
+
+
+
+/*
 pub fn print_current_address(path: PathBuf) {
-    if let Ok(path) = fs::read("C:\\Users\\is_st\\key.txt"){
+    if let Ok(key) = fs::read(path) {
         let parsed_key: [u8; 64] = key[..64].try_into().expect("Error: the provided key is shorter than 64 bytes");
         let xprv: SecretKeyExtended = SecretKeyExtended::from_bytes(parsed_key).expect("Error: parsing the key");
         let leaked: [u8; SecretKeyExtended::SIZE] = unsafe { SecretKeyExtended::leak_into_bytes(xprv.clone()) };
@@ -31,15 +103,7 @@ pub fn print_current_address(path: PathBuf) {
         print!("ERROR READING KEY FROM FILE")
     }
 }
-
-
-
-
-
-
-
-
-
+*/
 
 
 
